@@ -29,7 +29,6 @@ import android.content.Context
 import android.widget.FrameLayout
 import androidx.camera.view.PreviewView
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
@@ -50,7 +49,6 @@ fun CameraScreen(
         )
     )
 
-    // Сохраняем ссылку на PreviewView из AndroidView
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -62,12 +60,11 @@ fun CameraScreen(
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT
                     )
-                    // сохраняем в compose-состоянии
                     previewView = this
                 }
             },
             modifier = Modifier.matchParentSize(),
-            update = { }
+            update = {}
         )
 
         // Top Bar
@@ -131,7 +128,6 @@ fun CameraScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Switch Camera Button — текстовый fallback
             FloatingActionButton(
                 onClick = onSwitchCamera,
                 modifier = Modifier.size(56.dp),
@@ -139,10 +135,9 @@ fun CameraScreen(
                 contentColor = Color.Black,
                 shape = CircleShape
             ) {
-                Text("↔️", fontSize = 24.sp) // Эмодзи как fallback
+                Text("↔️", fontSize = 24.sp)
             }
 
-            // Capture Button
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -171,7 +166,6 @@ fun CameraScreen(
                 }
             }
 
-            // Mode Indicator
             Text(
                 text = "Режим: ${selectedMode.title}",
                 fontSize = 12.sp,
@@ -187,11 +181,10 @@ fun CameraScreen(
         }
     }
 
-    // Когда PreviewView создан, уведомляем MainActivity
     DisposableEffect(previewView) {
         if (previewView != null) {
             onPreviewViewReady?.invoke(previewView!!)
         }
-        onDispose { }
+        onDispose {}
     }
 }
