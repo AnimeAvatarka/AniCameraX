@@ -1,5 +1,7 @@
 package com.cmf.anicamerax
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,25 +11,44 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSettingsScreen(
-    profile: CameraProfile,
-    onProfileChange: (CameraProfile) -> Unit,
     onBack: () -> Unit
 ) {
-    var currentProfile by remember { mutableStateOf(profile) }
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
+    // Все параметры LMC с ключами из flame_lmc8.4r18_mediatek_v1.xml
+    val lmcParams = remember {
+        mutableStateListOf(
+            LmcParam("Sharpness", 20f, 0f..50f, "libsabresharp"),
+            LmcParam("Saturation", 30f, 0f..50f, "libsaturation"),
+            LmcParam("Contrast", 40f, 0f..50f, "libcontrast"),
+            LmcParam("Denoise", 25f, 0f..50f, "libdenoise"),
+            LmcParam("HDR Boost", 35f, 0f..50f, "libhdr2"),
+            LmcParam("Gain Large", 30f, 0f..50f, "libgainlarge"),
+            LmcParam("Sabre Contrast", 40f, 0f..50f, "libsabrecontrast"),
+            LmcParam("Highlight", 30f, 0f..50f, "libhightlight2"),
+            LmcParam("Dehaze", 20f, 0f..50f, "libdehazedexpo"),
+            LmcParam("Gamma Curve", 3f, 1f..5f, "prefgammacurvepreset"),
+            LmcParam("Smoothing", 25f, 0f..50f, "libsmoothingnew")
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Тонкая настройка") },
+                title = { Text("LMC 8.4r18 MediaTek") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Назад")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -37,117 +58,88 @@ fun AdvancedSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SettingSlider(
-                label = "Качество JPEG",
-                value = currentProfile.jpegQuality.toFloat(),
-                range = 50f..100f,
-                onValueChange = { quality ->
-                    currentProfile = currentProfile.copy(jpegQuality = quality.toInt())
-                }
+            Text(
+                "Параметры из flame_lmc8.4r18_mediatek_v1.xml",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                fontSize = 14.sp,
+                color = androidx.compose.ui.graphics.Color.Gray
             )
 
-            SettingSlider(
-                label = "Экспокоррекция",
-                value = currentProfile.exposureCompensation.toFloat(),
-                range = -3f..3f,
-                steps = 6,
-                onValueChange = { exp ->
-                    currentProfile = currentProfile.copy(exposureCompensation = exp.toInt())
-                }
-            )
-
-            SettingSlider(
-                label = "Насыщенность",
-                value = currentProfile.saturation,
-                range = 0.5f..2f,
-                onValueChange = { sat ->
-                    currentProfile = currentProfile.copy(saturation = sat)
-                }
-            )
-
-            SettingSlider(
-                label = "Контраст",
-                value = currentProfile.contrast,
-                range = 0.5f..2f,
-                onValueChange = { con ->
-                    currentProfile = currentProfile.copy(contrast = con)
-                }
-            )
-
-            SettingSlider(
-                label = "Резкость",
-                value = currentProfile.sharpness,
-                range = 0.5f..2f,
-                onValueChange = { sharp ->
-                    currentProfile = currentProfile.copy(sharpness = sharp)
-                }
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("HDR", fontSize = 16.sp)
-                Switch(
-                    checked = currentProfile.enableHdr,
-                    onCheckedChange = { hdr ->
-                        currentProfile = currentProfile.copy(enableHdr = hdr)
-                    }
-                )
+            lmcParams.forEach { param ->
+                LmcSlider(param)
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Ночной режим", fontSize = 16.sp)
-                Switch(
-                    checked = currentProfile.enableNight,
-                    onCheckedChange = { night ->
-                        currentProfile = currentProfile.copy(enableNight = night)
-                    }
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    onProfileChange(currentProfile)
-                    onBack()
+                    exportToXml(context, lmcParams)
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 16.dp)
             ) {
-                Text("Сохранить")
+                Text("Экспорт в XML")
             }
         }
     }
 }
 
+data class LmcParam(
+    val name: String,
+    var value: Float,
+    val range: ClosedFloatingPointRange<Float>,
+    val xmlKey: String
+)
+
 @Composable
-private fun SettingSlider(
-    label: String,
-    value: Float,
-    range: ClosedFloatingPointRange<Float>,
-    steps: Int = (range.endInclusive - range.start).toInt() * 5,
-    onValueChange: (Float) -> Unit
-) {
+private fun LmcSlider(param: LmcParam) {
+    var value by remember(param.xmlKey) { mutableFloatStateOf(param.value) }
+    param.value = value // синхронизация
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(label, fontSize = 16.sp)
-            Text(String.format("%.1f", value))
+            Text(param.name, fontSize = 16.sp)
+            Text(value.toInt().toString(), fontSize = 16.sp)
         }
         Slider(
             value = value,
-            onValueChange = onValueChange,
-            valueRange = range,
-            steps = steps
+            onValueChange = { value = it },
+            valueRange = param.range,
+            steps = if (param.range.endInclusive <= 5) 4 else 49
         )
+        Text(
+            "XML: ${param.xmlKey}=${"%.1f".format(value)}",
+            fontSize = 12.sp,
+            color = androidx.compose.ui.graphics.Color.Gray,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
+// Экспорт параметров в XML (упрощённый формат)
+private fun exportToXml(context: Context, params: List<LmcParam>) {
+    val xmlContent = buildString {
+        append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+        append("<flame_lmc84r18_mediatek>\n")
+        params.forEach { param ->
+            append("    <${param.xmlKey}>${"%.1f".format(param.value)}</${param.xmlKey}>\n")
+        }
+        append("</flame_lmc84r18_mediatek>")
+    }
+
+    try {
+        val file = File(context.getExternalFilesDir(null), "flame_lmc8.4r18_mediatek_v1.xml")
+        file.writeText(xmlContent)
+        Toast.makeText(context, "✅ XML сохранён: ${file.path}", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        Toast.makeText(context, "❌ Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+        e.printStackTrace()
     }
 }

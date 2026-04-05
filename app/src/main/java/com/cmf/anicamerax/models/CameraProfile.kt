@@ -1,7 +1,7 @@
-package com.cmf.anicamerax
+package com.cmf.anicamerax.models
 
-import androidx.camera.core.ImageCapture
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.ImageCapture
 
 data class CameraProfile(
     val aspectRatio: Int = AspectRatio.RATIO_4_3,

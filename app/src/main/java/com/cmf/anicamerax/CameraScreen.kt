@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import android.content.Context
 import android.widget.FrameLayout
 import androidx.camera.view.PreviewView
+import com.cmf.anicamerax.models.PhotoMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
