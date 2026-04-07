@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AniCameraX</string>
+    <string name="mode_camera">Камера</string>
+    <string name="mode_night">Ночь</string>
+    <string name="mode_portrait">Портрет</string>
+    <string name="mode_hdr">HDR</string>
+    <string name="mode_video">Видео</string>
+    <string name="mode_front">Фронт</string>
 </resources>

@@ -11,6 +11,8 @@ class CameraConfigManager {
             PhotoMode.Portrait -> CameraProfile(captureMode = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
             PhotoMode.Night -> CameraProfile(enableNight = true, exposureCompensation = 2)
             PhotoMode.Video -> CameraProfile(aspectRatio = AspectRatio.RATIO_16_9)
+            PhotoMode.HDR -> CameraProfile(enableHdr = true, jpegQuality = 98)
+            PhotoMode.Front -> CameraProfile(captureMode = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
         }
     }
 }
