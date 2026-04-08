@@ -40,6 +40,8 @@ androidx-camera-video = { group = "androidx.camera", name = "camera-video", vers
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "androidx-camera" }
 androidx-camera-compose = { group = "androidx.camera", name = "camera-compose", version.ref = "androidx-camera" }
 androidx-camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "androidx-camera" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 # Coroutines & Futures
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }

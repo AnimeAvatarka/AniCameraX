@@ -1,32 +1,30 @@
+// 1. Блок плагинов должен быть САМЫМ ПЕРВЫМ
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // Если у тебя в TOML есть kotlin-android, раскомментируй строку ниже:
+    // alias(libs.plugins.kotlin.android)
 }
 
+// 2. Блок android идет отдельно, после плагинов
 android {
     namespace = "com.cmf.anicamerax"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.cmf.anicamerax"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -38,68 +36,48 @@ android {
     buildFeatures {
         compose = true
     }
+}
 
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+// 3. Настройка компилятора (вынесена из блока android)
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.addAll(
+            "-opt-in=androidx.camera.core.ExperimentalZeroShutterLag",
+            "-opt-in=androidx.camera.camera2.interop.ExperimentalCamera2Interop"
+        )
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
+// 4. Зависимости
 dependencies {
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    // Ядро и Lifecycle
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+
+    // COMPOSE (Ошибки 'ui' и 'material3' были здесь)
     implementation(platform(libs.androidx.compose.bom))
 
-    // Core & Activity
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.datastore.preferences)
+    // ПРАВИЛЬНО: используем полный путь androidx.ui, так как в TOML это androidx-ui
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.compose.ui.graphics)
 
-    // Lifecycle
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-
-    // СТРОКА 66: ИСПРАВЛЕНИЕ (Альтернативный синтаксис обращения)
-    // Если через точки не видит, используем findLibrary
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // ПРАВИЛЬНО: используем androidx.material3, так как в TOML это androidx-material3
+    implementation(libs.androidx.material3)
+    // Базовый набор иконок
+    implementation(libs.androidx.compose.material.icons.core)
+    // РАСШИРЕННЫЙ набор (FlashOn/FlashOff часто находятся именно здесь)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // CameraX
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
-
-    // СТРОКА 73: ИСПРАВЛЕНИЕ
-    implementation(libs.androidx.camera.video)
-
     implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.compose)
-    implementation(libs.androidx.camera.extensions)
 
-    // UI & Graphics
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.core)
-    implementation(libs.androidx.compose.material.icons.extended)
-
-    // Coroutines & Futures
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.androidx.concurrent.futures.ktx)
-
-    implementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-
-
-    // Testing & Debug (Чтобы не было ворнингов)
+    // Тестирование
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }
